@@ -69,6 +69,7 @@ func check() (status *Status) {
 
 func main() {
 	waitStr := flag.String("t", "5m", "time.ParseDuration value")
+        goodOnly := flag.Bool("g", false, "keep running until status is 'good'")
 	quiet := flag.Bool("q", false, "don't speak status")
 	once := flag.Bool("1", false, "only run one check")
 	flag.Parse()
@@ -89,7 +90,11 @@ func main() {
 			fmt.Println("[+] Github is operating normally.")
 			speaker("Git hub is operating normally.")
 			break
-		} else {
+		} else if st.Status == "minor" && !(*goodOnly) {
+                        fmt.Println("[+] some performance degradation.")
+                        speaker("Git hub is experiencing degraded performance.")
+                        break
+                } else {
 			fmt.Printf("[+] Git hub is down: %s\n", st.Status)
 			speaker("Git hub status: " + st.Status + ". Git hub is still down.")
 		}
