@@ -68,7 +68,7 @@ func check() (status *Status) {
 }
 
 func main() {
-	waitStr := flag.String("t", "1m", "time.ParseDuration value")
+	waitStr := flag.String("t", "5m", "time.ParseDuration value")
 	quiet := flag.Bool("q", false, "don't speak status")
 	once := flag.Bool("1", false, "only run one check")
 	flag.Parse()
