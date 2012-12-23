@@ -90,13 +90,15 @@ func main() {
 			fmt.Println("[+] Github is operating normally.")
 			speaker("Git hub is operating normally.")
 			break
-		} else if st.Status == "minor" && !(*goodOnly) {
+		} else if st.Status == "minor"{
                         fmt.Println("[+] some performance degradation.")
                         speaker("Git hub is experiencing degraded performance.")
-                        break
+                        if !(*goodOnly) {
+                                break
+                        }
                 } else {
-			fmt.Printf("[+] Git hub is down: %s\n", st.Status)
-			speaker("Git hub status: " + st.Status + ". Git hub is still down.")
+			fmt.Printf("[+] Git hub is down. Major service interruptions.")
+			speaker("Git hub is experiencing major service interruptions.")
 		}
 		if *once {
 			break
