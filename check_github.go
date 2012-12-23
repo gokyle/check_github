@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	//"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
@@ -22,23 +22,13 @@ type Status struct {
 var shouldSpeak = true
 
 func speak(text string) (err error) {
-	var path string
-	var cmd *exec.Cmd
-
-	path, err = exec.LookPath("say")
-	if err != nil {
+	if !shouldSpeak {
 		return
 	}
+	var cmd *exec.Cmd
 
-	cmd = exec.Command(path, text)
+	cmd = exec.Command("say", text)
 	err = cmd.Run()
-	return
-}
-
-func speaker(text string) (err error) {
-	if shouldSpeak {
-		err = speak(text)
-	}
 	return
 }
 
@@ -47,21 +37,14 @@ func check() (status *Status) {
 	resp, err := http.Get(githubStatusEndpoint)
 	if err != nil {
 		fmt.Println("[!] fatal connect problem: ", err.Error())
-		speaker("HTTP request failed.")
+		speak("HTTP request failed.")
 		return
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("[!] bad response from API: ", err.Error())
-		speaker("Bad response from status API.")
-		return
-	}
 	status = new(Status)
-	err = json.Unmarshal(body, status)
-	if err != nil {
+	if err = json.NewDecoder(resp.Body).Decode(status); err != nil {
 		fmt.Println("[!] error unmarshalling JSON: ", err.Error())
-		speaker("Could not unmarshal JSON response.")
+		speak("Could not unmarshal JSON response.")
 		status = nil
 	}
 	return
@@ -69,7 +52,7 @@ func check() (status *Status) {
 
 func main() {
 	waitStr := flag.String("t", "5m", "time.ParseDuration value")
-        goodOnly := flag.Bool("g", false, "keep running until status is 'good'")
+	goodOnly := flag.Bool("g", false, "keep running until status is 'good'")
 	quiet := flag.Bool("q", false, "don't speak status")
 	once := flag.Bool("1", false, "only run one check")
 	flag.Parse()
@@ -77,28 +60,28 @@ func main() {
 	wait, err := time.ParseDuration(*waitStr)
 	if err != nil {
 		fmt.Println("could not parse wait time: ", err.Error())
-		speaker("Check Github failed to start.")
+		speak("Check Github failed to start.")
 		os.Exit(1)
 	}
 	fmt.Println("[+] Github status check")
-	speaker("Git hub status check starting.")
+	speak("Git hub status check starting.")
 	for {
 		st := check()
 		if st == nil {
 			continue
 		} else if st.Status == "good" {
 			fmt.Println("[+] Github is operating normally.")
-			speaker("Git hub is operating normally.")
+			speak("Git hub is operating normally.")
 			break
-		} else if st.Status == "minor"{
-                        fmt.Println("[+] some performance degradation.")
-                        speaker("Git hub is experiencing degraded performance.")
-                        if !(*goodOnly) {
-                                break
-                        }
-                } else {
+		} else if st.Status == "minor" {
+			fmt.Println("[+] some performance degradation.")
+			speak("Git hub is experiencing degraded performance.")
+			if !(*goodOnly) {
+				break
+			}
+		} else {
 			fmt.Printf("[+] Git hub is down. Major service interruptions.")
-			speaker("Git hub is experiencing major service interruptions.")
+			speak("Git hub is experiencing major service interruptions.")
 		}
 		if *once {
 			break
